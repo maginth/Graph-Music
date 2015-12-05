@@ -37,8 +37,8 @@ class AudioBuffer
 		buffer.clear(buffer.start,buffer.end);
 		
 		// initialisation de la table sinusoide
-		sinusoide = Mem.alloc(0x1000);
-		var dt:Float = 2 * Math.PI / 0x1000;
+		sinusoide = Mem.alloc(0x4000);
+		var dt:Float = 2 * Math.PI / 0x4000;
 		var i:Int = sinusoide.start;
 		while (i<sinusoide.end) {
 			Memory.setFloat(i, Math.sin(i * dt));
@@ -53,24 +53,23 @@ class AudioBuffer
 	
 	
 	static function fillBuffer(e:SampleDataEvent) {
-		trace("debut buffer");
 		Mem.copyBytes(Mem.byteArray, buffer.start + buffer_size, buffer_extended, Mem.byteArray, buffer.start);
 		
 		var task = task_buf[task_index]; // on récuppère les taches correspondant au buffer courrant
 		task_buf[task_index] = null; // on vide la liste des taches pour les prochains buffers
-		task_index == task_buf_end ? task_index = 0 : task_index++; // on incrémente l'index du buffer;
 		
 		while (task != null) {
-			trace("\t\t\ttache ");
-			task.exec();
-			task = task.nextTask;
+			var next = task.nextTask;
+			if (task.exec()==0) addTask(task,1);
+			task = next;
 		}
+		
+		task_index == task_buf_end ? task_index = 0 : task_index++; // on incrémente l'index du buffer;
 		
 		e.data.endian = Endian.LITTLE_ENDIAN;
 		e.data.length = buffer_size;
 		Mem.copyBytes(Mem.byteArray, buffer.start, buffer_size, e.data, 0);
 		e.data.position = buffer_size;
-		trace("buffer écrit");
 	}
 	
 	public static inline function play() { soundChannel = sound.play(); }
@@ -78,6 +77,7 @@ class AudioBuffer
 	
 	public static inline function addTask(task:Task, offset:Int) {
 		var i = (task_index + offset) % (task_buf_end + 1);
+		if (task_buf[i] == task) trace('BUGGGGGGGGGGGGGGG !!!!!!!!!!!!!!!!!!!'+task_index);
 		task.nextTask = task_buf[i];
 		task_buf[i] = task;
 	}
@@ -87,6 +87,6 @@ class AudioBuffer
 
 interface Task {
 	var nextTask:Task;
-	function exec():Void;
+	function exec():Int;
 }
 

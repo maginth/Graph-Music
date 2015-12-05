@@ -22,18 +22,16 @@ import haxe.macro.Expr;
 class Harmonic implements AudioBuffer.Task {
 	public var nextTask:AudioBuffer.Task;
 	
+	public var enveloppe:Enveloppe;
+	
 	public var ampl:Float;
-	public var ampl_max:Float;
-	public var up:Float;
-	public var middle:Int;
-	public var decay:Float;
+	public var remaining_sample:Int;
 	
-	public var phase:Int;
-	
-	public var delta_f:Int;
+	public var phase:Int; //sinusoide phase
 	
 	public var start:Int;
 	// décalage en des autres canaux et echos :
+	public var delta_0:Int;
 	public var delta_1:Int;
 	public var delta_2:Int; //echo
 	public var delta_3:Int; //echo
@@ -42,35 +40,89 @@ class Harmonic implements AudioBuffer.Task {
 	public var k_2:Float; //echo
 	public var k_3:Float; //echo
 	
-	public var type:Int;
 	public var echo:Int;
 	
-	public function new() {}
+	public function new(?model:Harmonic) {
+		if (model == null) return;
+		enveloppe = model.enveloppe;
+		ampl = model.ampl;
+		phase = model.phase;
+		delta_0 = model.delta_0;
+		delta_1 = model.delta_1;
+		delta_2 = model.delta_2;
+		delta_3 = model.delta_3;
+		k_1 = model.k_1;
+		k_2 = model.k_2;
+		k_3 = model.k_3;
+		echo = model.echo;
+		remaining_sample = model.remaining_sample;
+	}
+	
+	// ajoute une copie de l'harmonic comme une tâche à effectuer à l'instant t
+	public function addToBuffer(t:Float) {
+		var ech = Std.int(t * 44100);
+		var hmc = new Harmonic(this);
+		hmc.start = 8*(ech % 8192);
+		AudioBuffer.addTask(hmc,Std.int(ech/8192)) ;
+	}
 	
 	public function exec() {
-		var end,pos1,pos2,pos3:Int;
-		var a:Float;
+		var end,end_etape,delta_f,pos1,pos2,pos3:Int;
+		var a,up,decay:Float;
+		var etape:Etape;
 		// transformation des attributs d'objet en variables locales pour la performance 
-		var pos=start,type=type,ampl = ampl, up = up, decay = decay, phase = phase, delta_f = delta_f, delta_1 = delta_1, delta_2 = delta_2, delta_3 = delta_3, k_1 = k_1, k_2 = k_2, k_3 = k_3;
-		var sin_end = AudioBuffer.sinusoide.end, sin_mod = -AudioBuffer.sinusoide.length,buffer_end = AudioBuffer.buffer_size;
+		var pos=start+delta_0,ampl = ampl, phase = phase, delta_1 = delta_1, delta_2 = delta_2, delta_3 = delta_3, k_1 = k_1, k_2 = k_2, k_3 = k_3;
+		var sin_end = AudioBuffer.sinusoide.end, sin_mod = -AudioBuffer.sinusoide.length,buffer_end = AudioBuffer.buffer_size+delta_0;
 		
-		do {
-			if (echo == 0) WAVE.TYPE(0);
-			else WAVE.TYPE(1);
-		} while (type <3 && end < buffer_end);
-		
-		// enregistrement des variable locales dans les attributs d'objet pour continuer le travaille au prochain buffer
-		if (type <3) {
-			this.middle = start+middle-end; // temps restant en type 1 (amplitude constante) après interruption (fin du buffer des échantillons audio) 
-			this.start = AudioBuffer.buffer.start;
-			this.ampl = ampl; 
-			this.phase = phase; 
-			this.type = type;
-			AudioBuffer.addTask(this, 0); // l'écriture continura imédiatement au prochain buffer (offset 0)
+		while (true) {
+			etape = enveloppe.etape;
+			delta_f = etape.delta_f;
+			end_etape = pos + remaining_sample*8;
+			end = end_etape > buffer_end? buffer_end : end_etape;
+			switch (etape.type) {
+				case 0: 
+					up = (etape.ampl_fin - ampl) / remaining_sample;
+					WAVE.TYPE(ampl += up);
+				case 1:
+					WAVE.TYPE(null);
+				case 2: 
+					decay = Math.pow(etape.ampl_fin / ampl, 1 / remaining_sample);
+					WAVE.TYPE(ampl *= decay);
+			}
+			
+			if (end_etape > buffer_end) {
+				remaining_sample = (end_etape-end) >> 3;
+				this.start = AudioBuffer.buffer.start;
+				this.ampl = ampl; 
+				this.phase = phase; 
+				return 0; // l'écriture continura imédiatement au prochain buffer (offset 0)
+			} else {
+				enveloppe = enveloppe.next();
+				if (enveloppe == null) return 1;
+				else remaining_sample = enveloppe.etape.samples;
+			}
 		}
+		return -1;
 	}
 	
 }
+
+class Etape {
+	public var ampl_fin:Float;
+	public var samples:Int;
+	public var delta_f:Int; // phase step (frequency)
+	public var type:Int;
+	
+	public function new(?etape:Etape) {
+		if (etape == null) return;
+		ampl_fin = etape.ampl_fin;
+		samples = etape.samples;
+		delta_f = etape.delta_f;
+		type = etape.type;
+	}
+}
+
+
 
 #end
 
@@ -79,32 +131,28 @@ import haxe.macro.Context;
 
 class WAVE {
 	
-	static function LOOP(calc_end:Expr,ampl_variation:Expr, write_sample:Expr) {
+	static function LOOP(ampl_variation:Expr, write_sample:Expr) {
 		return macro {
-			end = $calc_end;
-			trace('type ' + type + '  echantillons ' + (end - pos)+'  pos '+pos+'  end '+end+' ampl '+ampl);
-			if (end > buffer_end) end = buffer_end;
-			else type++;
+			
 			while (pos < end) {
 				a = ampl * Memory.getFloat(phase);
 				phase += delta_f;
 				if (phase > sin_end) phase += sin_mod;
 				
-				$write_sample; // addition des échentillons dans le buffer (oreille droite, gauche, echoes...)
+				$write_sample; // addition des échentillons dans le buffer (oreille droite, gauche, echos...)
 				pos += 8;
 				$ampl_variation; 
 			}
 		}
 	}
 	
-	@:macro public static function TYPE(echo:Int) {
+	@:macro public static function TYPE(ampl_variation:Expr) {
 		var write_sample:Expr = macro {
 				Memory.setFloat(pos, Memory.getFloat(pos) + a);
 				pos1 = pos + delta_1;
 				Memory.setFloat(pos1, Memory.getFloat(pos1) + a * k_1);
 			};
-		if (echo > 0)
-			write_sample = macro {
+		var write_sample_echo = macro {
 				$write_sample;
 				pos2 = pos + delta_2;
 				Memory.setFloat(pos2, Memory.getFloat(pos2) + a * k_2);
@@ -112,14 +160,10 @@ class WAVE {
 				Memory.setFloat(pos3, Memory.getFloat(pos3) + a * k_3);
 			};
 			
-		return {expr : EIf(macro type == 0,
-				LOOP(macro Std.int((ampl_max - ampl) / up) * 8 + pos , macro ampl += up, write_sample),
-				{expr : EIf(macro type == 1, 
-					LOOP(macro pos + middle , macro 0, write_sample),
-					LOOP(macro Std.int(Math.log(0.01/ampl)/Math.log(decay)) * 8 + pos , macro ampl *= decay, write_sample)),
+		return {expr : EIf(macro echo == 0,
+					LOOP(ampl_variation, write_sample),
+					LOOP(ampl_variation, write_sample_echo)),
 				pos : Context.currentPos()}
-				),
-		pos : Context.currentPos()};
 	}
 
 }
