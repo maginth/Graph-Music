@@ -26,7 +26,7 @@ class AudioBuffer
 	static var sound:Sound;
 	static var soundChannel:SoundChannel;
 	
-	static var task_buf:Array<Task>;
+	static var task_buf:Array<Array<Task>>;
 	static var task_index:Int = 0;
 	
 	
@@ -44,8 +44,8 @@ class AudioBuffer
 			Memory.setFloat(i, Math.sin(i * dt));
 			i += 4;
 		}
-		task_buf = new Array<Task>();
-		task_buf[task_buf_end] = null;
+		task_buf = new Array<Array<Task>>();
+		for (i in 0...task_buf_end) task_buf[i] = new Array<Task>();
 		
 		sound = new Sound();
 		sound.addEventListener(SampleDataEvent.SAMPLE_DATA, fillBuffer);
@@ -56,15 +56,13 @@ class AudioBuffer
 		Mem.copyBytes(Mem.byteArray, buffer.start + buffer_size, buffer_extended, Mem.byteArray, buffer.start);
 		
 		var task = task_buf[task_index]; // on récuppère les taches correspondant au buffer courrant
-		task_buf[task_index] = null; // on vide la liste des taches pour les prochains buffers
 		
-		while (task != null) {
-			var next = task.nextTask;
-			if (task.exec()==0) addTask(task,1);
-			task = next;
-		}
+		var i = 0;
+		while (i < task.length) task[i++].exec();
 		
-		task_index == task_buf_end ? task_index = 0 : task_index++; // on incrémente l'index du buffer;
+		task_buf[task_index] = new Array<Task>(); // on vide la liste des taches pour les prochains buffers
+		task_index++; // on incrémente l'index du buffer;
+		if(task_index == task_buf_end) task_index = 0; 
 		
 		e.data.endian = Endian.LITTLE_ENDIAN;
 		e.data.length = buffer_size;
@@ -76,17 +74,35 @@ class AudioBuffer
 	public static inline function stop() { soundChannel.stop(); }
 	
 	public static inline function addTask(task:Task, offset:Int) {
-		var i = (task_index + offset) % (task_buf_end + 1);
-		if (task_buf[i] == task) trace('BUGGGGGGGGGGGGGGG !!!!!!!!!!!!!!!!!!!'+task_index);
-		task.nextTask = task_buf[i];
-		task_buf[i] = task;
+		var i:Int;
+		if (offset >= task_buf_end) {
+			i = (task_index == 0)? task_buf_end - 1 : task_index - 1;
+			task = new FarawayTask(task, offset - task_buf_end+1);
+		} else i = (task_index + offset) % task_buf_end;
+		var buf = task_buf[i];
+		buf[buf.length] = task;
 	}
 	
 	
 }
 
 interface Task {
-	var nextTask:Task;
-	function exec():Int;
+	function exec():Void;
 }
+
+class FarawayTask implements Task {
+	var task:Task;
+	var offset:Int;
+	
+	public function new(task, offset) {
+		this.task = task;
+		this.offset = offset;
+	}
+	
+	public function exec() {
+		AudioBuffer.addTask(task, offset);
+	}
+}
+
+
 

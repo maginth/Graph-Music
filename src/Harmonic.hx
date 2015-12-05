@@ -1,5 +1,7 @@
 package ;
 
+import haxe.macro.Expr;
+import haxe.macro.Context;
 #if flash
 import flash.Memory;
 import haxe.macro.Expr;
@@ -20,7 +22,6 @@ import haxe.macro.Expr;
 
 
 class Harmonic implements AudioBuffer.Task {
-	public var nextTask:AudioBuffer.Task;
 	
 	public var enveloppe:Enveloppe;
 	
@@ -58,8 +59,15 @@ class Harmonic implements AudioBuffer.Task {
 		remaining_sample = model.remaining_sample;
 	}
 	
-	// ajoute une copie de l'harmonic comme une tâche à effectuer à l'instant t
+	// ajoute l'harmonic comme une tâche à effectuer à l'instant t
 	public function addToBuffer(t:Float) {
+		var ech = Std.int(t * 44100);
+		this.start = 8*(ech % 8192);
+		AudioBuffer.addTask(this,Std.int(ech/8192));
+	}
+	
+	// ajoute une copie de l'harmonic comme une tâche à effectuer à l'instant t
+	public function addCopyToBuffer(t:Float) {
 		var ech = Std.int(t * 44100);
 		var hmc = new Harmonic(this);
 		hmc.start = 8*(ech % 8192);
@@ -72,7 +80,7 @@ class Harmonic implements AudioBuffer.Task {
 		var etape:Etape;
 		// transformation des attributs d'objet en variables locales pour la performance 
 		var pos=start+delta_0,ampl = ampl, phase = phase, delta_1 = delta_1, delta_2 = delta_2, delta_3 = delta_3, k_1 = k_1, k_2 = k_2, k_3 = k_3;
-		var sin_end = AudioBuffer.sinusoide.end, sin_mod = -AudioBuffer.sinusoide.length,buffer_end = AudioBuffer.buffer_size+delta_0;
+		var sin_end = AudioBuffer.sinusoide.end - 4, sin_mod = AudioBuffer.sinusoide.length,buffer_end = AudioBuffer.buffer_size+delta_0;
 		
 		while (true) {
 			etape = enveloppe.etape;
@@ -95,14 +103,14 @@ class Harmonic implements AudioBuffer.Task {
 				this.start = AudioBuffer.buffer.start;
 				this.ampl = ampl; 
 				this.phase = phase; 
-				return 0; // l'écriture continura imédiatement au prochain buffer (offset 0)
+				AudioBuffer.addTask(this, 1); // l'écriture continura imédiatement au prochain buffer (offset 1)
+				return;
 			} else {
 				enveloppe = enveloppe.next();
-				if (enveloppe == null) return 1;
+				if (enveloppe == null) return;
 				else remaining_sample = enveloppe.etape.samples;
 			}
 		}
-		return -1;
 	}
 	
 }
@@ -126,8 +134,6 @@ class Etape {
 
 #end
 
-import haxe.macro.Expr;
-import haxe.macro.Context;
 
 class WAVE {
 	
@@ -137,7 +143,7 @@ class WAVE {
 			while (pos < end) {
 				a = ampl * Memory.getFloat(phase);
 				phase += delta_f;
-				if (phase > sin_end) phase += sin_mod;
+				if (phase > sin_end) phase -= sin_mod;
 				
 				$write_sample; // addition des échentillons dans le buffer (oreille droite, gauche, echos...)
 				pos += 8;

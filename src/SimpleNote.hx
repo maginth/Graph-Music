@@ -7,9 +7,11 @@ package ;
 
 class SimpleNote extends Harmonic
 {
-	inline static var ampl_min = 0.01;
+	inline static var ampl_min = 0.0001;
 	
 	public var total_time:Float;
+	
+	
 	
 	public function new(freq:Float,ampl:Float,attack:Float,middle:Float,decay:Float,x:Float,y:Float) 
 	{
@@ -46,7 +48,7 @@ class SimpleNote extends Harmonic
 		this.delta_1 = 4+8*Std.int((d + dd) * 0.003 * 44100);
 		this.echo = 0;
 		this.k_1 = 1;
-		this.phase = 0;
+		this.phase = AudioBuffer.sinusoide.start;
 		this.remaining_sample = etape_a.samples;
 	}
 	
