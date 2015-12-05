@@ -88,6 +88,7 @@ class AudioBuffer
 
 interface Task {
 	function exec():Void;
+	function addToBuffer(t:Float):Void;
 }
 
 class FarawayTask implements Task {
@@ -102,6 +103,8 @@ class FarawayTask implements Task {
 	public function exec() {
 		AudioBuffer.addTask(task, offset);
 	}
+	
+	public function addToBuffer(t:Float) { };
 }
 
 

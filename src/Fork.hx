@@ -7,7 +7,7 @@ package ;
 
 class Fork 
 {
-	public var note:SimpleNote;
+	public var task:AudioBuffer.Task;
 	public var fork1:Fork;
 	public var fork2:Fork;
 	public var ratio_fork:Float;
@@ -38,8 +38,16 @@ class Fork_Task implements AudioBuffer.Task {
 			var x = fork.ratio_fork * total_time;
 			new Fork_Task(fork.fork1, start_time, x);
 			new Fork_Task(fork.fork2, start_time + x, total_time-x);
-			fork.note.addCopyToBuffer(start_time);
+			fork.task.addToBuffer(start_time);
 		} else
-			fork.note.addCopyToBuffer(start_time);
+			fork.task.addToBuffer(start_time);
+	}
+	
+	public function addToBuffer(t:Float)
+	{
+		//var data_offset = Std.int(t * 44100 / 8192);
+		//this.start_time = start_time % (8192 / 44100);
+		//AudioBuffer.addTask(this, data_offset);
+		//AudioBuffer.addTask(this, data_offset);
 	}
 }

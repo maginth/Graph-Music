@@ -48,7 +48,7 @@ class SimpleNote extends Harmonic
 		this.delta_1 = 4+8*Std.int((d + dd) * 0.003 * 44100);
 		this.echo = 0;
 		this.k_1 = 1;
-		this.phase = AudioBuffer.sinusoide.start;
+		this.phase = 0;
 		this.remaining_sample = etape_a.samples;
 	}
 	

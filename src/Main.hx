@@ -21,7 +21,7 @@ class Main
 		
 		Mem.select();
 		AudioBuffer.init();
-		//*
+		/*
 		var f = 200 * Math.exp(Math.random() * 3),
 			at = Math.pow(Math.random(), 3) * 0.1 + 0.1,
 			mt = Math.random() * 0.1 + 0.05,
@@ -52,7 +52,7 @@ class Main
 		for (i in 0...100) {
 			new SimpleNote(Math.random() * 1000, 0.1, Math.random() * 0.1, Math.random() * 0.2, Math.random(), Math.random() * 10 - 5, Math.random() * 10 - 5).addToBuffer(Math.random()*10);
 		}
-		*//*
+		*///*
 		var base_tempo = 0.2 + 0.6 * Math.random();
 		var var_tempo = base_tempo * Math.pow(Math.random(), 3);
 		var base_duree = 2 * base_tempo * Math.random();
@@ -61,13 +61,13 @@ class Main
 		var forks = new Array<Fork>();
 		for (i in 0...nb_fork) {
 			var f = forks[i] = new Fork();
-			f.note = new SimpleNote(Math.pow(2, 7 + (i % 50)/50 * 4),
+			f.task = new SimpleInstrument(Math.pow(2, 7 + (i % 50) / 50 * 4));/* ,
 									0.2,//0.04*Math.pow(2, 1-i/nb_fork),
 									0.001,//Math.pow(Math.random(), 2) * 0.05,
 									0.1,//Math.pow(Math.random(), 2) * 0.2,
 									0.3,//Math.random(),
 									Math.random() * 10 - 5,
-									Math.random() * 10 - 5);
+									Math.random() * 10 - 5);*/
 			f.ratio_fork = Math.random();
 			f.ratio_decalage = base_tempo - var_tempo * Math.pow(Math.random(), 3);
 			f.duree_note = base_duree - var_duree * Math.pow(Math.random(), 3);
