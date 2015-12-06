@@ -12,7 +12,6 @@ class Fork
 	public var fork2:Fork;
 	public var ratio_fork:Float;
 	public var ratio_decalage:Float;
-	public var duree_note:Float;
 	
 	public function new() {}
 }
@@ -22,9 +21,11 @@ class Fork_Task implements AudioBuffer.Task {
 	var total_time:Float;
 	var fork:Fork;
 	var start_time:Float;
+	var context:MusicContext;
 	
-	public function new(fork,start_time:Float,total_time:Float) {
+	public function new(fork,start_time:Float,total_time:Float, context:MusicContext) {
 		this.fork = fork;
+		this.context = context;
 		this.total_time = total_time;
 		var data_offset = Std.int(start_time * 44100 / 8192);
 		this.start_time = start_time % (8192 / 44100);
@@ -32,13 +33,11 @@ class Fork_Task implements AudioBuffer.Task {
 	}
 	
 	public function exec() {
-		if (total_time > fork.duree_note * fork.ratio_decalage) {
-			start_time += fork.duree_note;
-			total_time-= fork.duree_note;
-			var x = fork.ratio_fork * total_time;
-			new Fork_Task(fork.fork1, start_time, x);
-			new Fork_Task(fork.fork2, start_time + x, total_time-x);
-			fork.task.addToBuffer(start_time);
+		var x = fork.ratio_fork * total_time;
+		x -= x % context.tempo;
+		if (total_time > context.tempo && x > 0.001) {
+			new Fork_Task(fork.fork1, start_time, x, context);
+			new Fork_Task(fork.fork2, start_time + x, total_time-x, context);
 		} else
 			fork.task.addToBuffer(start_time);
 	}

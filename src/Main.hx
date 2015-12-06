@@ -70,7 +70,6 @@ class Main
 									Math.random() * 10 - 5);*/
 			f.ratio_fork = Math.random();
 			f.ratio_decalage = base_tempo - var_tempo * Math.pow(Math.random(), 3);
-			f.duree_note = base_duree - var_duree * Math.pow(Math.random(), 3);
 		}
 		for (i in 0...nb_fork) 
 		{
@@ -82,7 +81,8 @@ class Main
 			f.fork1 = forks[i1];
 			f.fork2 = forks[i2];
 		}
-		new Fork.Fork_Task(forks[0], 0, 3600*12);
+		var context = new MusicContext(0.3);
+		new Fork.Fork_Task(forks[0], 0, 3600*12, context);
 		//*/
 		
 		AudioBuffer.play();
