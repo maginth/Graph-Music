@@ -4,7 +4,6 @@ import haxe.macro.Expr;
 import haxe.macro.Context;
 #if flash
 import flash.Memory;
-import haxe.macro.Expr;
 
 /**
  * Harmonic est une Task de l'AudioBuffer, son rôle est d'ajouter une harmonique en additionnant 
@@ -123,10 +122,7 @@ class Etape {
 	}
 }
 
-
-
 #end
-
 
 class WAVE {
 	
@@ -143,7 +139,7 @@ class WAVE {
 		}
 	}
 	
-	@:macro public static function TYPE(ampl_variation:Expr) {
+	macro public static function TYPE(ampl_variation:Expr) {
 		var write_sample:Expr = macro {
 				Memory.setFloat(pos, Memory.getFloat(pos) + a);
 				pos1 = pos + delta_1;

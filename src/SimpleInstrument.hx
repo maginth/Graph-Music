@@ -1,5 +1,6 @@
-package;
+package ;
 
+import Harmonic;
 /**
  * ...
  * @author ...
@@ -33,7 +34,7 @@ class SimpleInstrument implements AudioBuffer.Task
 			new SimpleNote(f/7, ampl *= ampl_decay + decay_rand * Math.random(), at, mt, et, x, y),
 			new SimpleNote(f/8, ampl *= ampl_decay + decay_rand * Math.random(), at, mt, et, x, y),
 			new SimpleNote(f/9, ampl *= ampl_decay + decay_rand * Math.random(), at, mt, et, x, y),
-			new SimpleNote(f / 10, ampl *= ampl_decay + decay_rand * Math.random(), at, mt, et, x, y),
+			new SimpleNote(f/10, ampl *= ampl_decay + decay_rand * Math.random(), at, mt, et, x, y),
 			
 			new SimpleNote(200 * Math.exp(Math.random() * 3), Math.random() * 0.01, at, mt, et, x, y),
 			new SimpleNote(200 * Math.exp(Math.random() * 3), Math.random() * 0.01, at, mt, et, x, y),

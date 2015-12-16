@@ -5,13 +5,14 @@ import flash.display.StageScaleMode;
 import flash.Lib;
 import flash.Memory;
 import flash.utils.ByteArray;
+import flash.display.Sprite;
 
 /**
  * ...
  * @author Guinin Mathieu
  */
 
-class Main 
+class Main
 {
 	static function main() 
 	{
@@ -57,7 +58,7 @@ class Main
 		var var_tempo = base_tempo * Math.pow(Math.random(), 3);
 		var base_duree = 2 * base_tempo * Math.random();
 		var var_duree = base_duree * Math.pow(Math.random(), 3);
-		var nb_fork = 200;
+		var nb_fork = 50;
 		var forks = new Array<Fork>();
 		for (i in 0...nb_fork) {
 			var f = forks[i] = new Fork();
@@ -74,14 +75,14 @@ class Main
 		for (i in 0...nb_fork) 
 		{
 			var f = forks[i];
-			var i1 = i + (2 * Std.random(2) - 1) * (1 + Std.random(4)+Std.random(2)*Std.random(3)*Std.random(3)+50*Std.random(4));
-			var i2 = i + (2 * Std.random(2) - 1) * (1 + Std.random(4)+Std.random(2)*Std.random(3)*Std.random(3)+50*Std.random(4));
+			var i1 = i + (2 * Std.random(2) - 1) * (1 + Std.random(3) * Std.random(3) +Std.random(3)*Std.random(3)*Std.random(3));
+			var i2 = i + (2 * Std.random(2) - 1) * (1 + Std.random(3) * Std.random(3) +Std.random(3)*Std.random(3)*Std.random(3));
 			i1 = (i1<0)? nb_fork+i1 : (i1>=nb_fork)? i1-nb_fork : i1;
 			i2 = (i2<0)? nb_fork+i2 : (i2>=nb_fork)? i2-nb_fork : i2;
 			f.fork1 = forks[i1];
 			f.fork2 = forks[i2];
 		}
-		var context = new MusicContext(0.3);
+		var context = new MusicContext(0.2);
 		new Fork.Fork_Task(forks[0], 0, 3600*12, context);
 		//*/
 		
