@@ -75,8 +75,8 @@ class Main
 		for (i in 0...nb_fork) 
 		{
 			var f = forks[i];
-			var i1 = i + (2 * Std.random(2) - 1) * (1 + Std.random(3) * Std.random(3) +Std.random(3)*Std.random(3)*Std.random(3));
-			var i2 = i + (2 * Std.random(2) - 1) * (1 + Std.random(3) * Std.random(3) +Std.random(3)*Std.random(3)*Std.random(3));
+			var i1 = i + (2 * Std.random(2) - 1) * (1 + cast(Math.pow(Math.random(),5) * nb_fork, Int));
+			var i2 = i + (2 * Std.random(2) - 1) * (1 + cast(Math.pow(Math.random(),5) * nb_fork, Int));
 			i1 = (i1<0)? nb_fork+i1 : (i1>=nb_fork)? i1-nb_fork : i1;
 			i2 = (i2<0)? nb_fork+i2 : (i2>=nb_fork)? i2-nb_fork : i2;
 			f.fork1 = forks[i1];

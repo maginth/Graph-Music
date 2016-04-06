@@ -2,7 +2,7 @@ package ;
 
 /**
  * ...
- * @author ...
+ * @author Mathieu Guinin
  */
 class MusicContext
 {
