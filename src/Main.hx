@@ -54,14 +54,29 @@ class Main
 			new SimpleNote(Math.random() * 1000, 0.1, Math.random() * 0.1, Math.random() * 0.2, Math.random(), Math.random() * 10 - 5, Math.random() * 10 - 5).addToBuffer(Math.random()*10);
 		}
 		*///*
-		var base_tempo = 0.2 + 0.6 * Math.random();
-		var var_tempo = base_tempo * Math.pow(Math.random(), 3);
-		var base_duree = 2 * base_tempo * Math.random();
-		var var_duree = base_duree * Math.pow(Math.random(), 3);
-		var nb_fork = 50;
+		
+		var base_tempo;
+		var var_tempo;
+		var base_duree;
+		var var_duree;
+		
+		function init_tempo() {
+			base_tempo = 0.1 + 0.4 * Math.random();
+			var_tempo = base_tempo * Math.pow(Math.random(), 3);
+			base_duree = 2 * base_tempo * Math.random();
+			var_duree = base_duree * Math.pow(Math.random(), 3);
+		}
+		init_tempo();
+		
+		var nb_fork = 1000;
 		var forks = new Array<Fork>();
+		
 		for (i in 0...nb_fork) {
 			var f = forks[i] = new Fork();
+			if (i % 50 == 0) {
+				init_tempo();
+				SimpleInstrument.rand_init();
+			}
 			f.task = new SimpleInstrument(Math.pow(2, 7 + (i % 50) / 50 * 4));/* ,
 									0.2,//0.04*Math.pow(2, 1-i/nb_fork),
 									0.001,//Math.pow(Math.random(), 2) * 0.05,
@@ -75,8 +90,8 @@ class Main
 		for (i in 0...nb_fork) 
 		{
 			var f = forks[i];
-			var i1 = i + (2 * Std.random(2) - 1) * (1 + cast(Math.pow(Math.random(),5) * nb_fork, Int));
-			var i2 = i + (2 * Std.random(2) - 1) * (1 + cast(Math.pow(Math.random(),5) * nb_fork, Int));
+			var i1 = Std.random(10) > 0 ? i + (2 * Std.random(2) - 1) * (1 + Std.random(3) * Std.random(3) +Std.random(3)*Std.random(3)*Std.random(3)) : Std.random(nb_fork);
+			var i2 = Std.random(10) > 0 ? i + (2 * Std.random(2) - 1) * (1 + Std.random(3) * Std.random(3) +Std.random(3)*Std.random(3)*Std.random(3)) : Std.random(nb_fork);
 			i1 = (i1<0)? nb_fork+i1 : (i1>=nb_fork)? i1-nb_fork : i1;
 			i2 = (i2<0)? nb_fork+i2 : (i2>=nb_fork)? i2-nb_fork : i2;
 			f.fork1 = forks[i1];

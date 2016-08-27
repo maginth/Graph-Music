@@ -37,9 +37,12 @@ class Fork_Task implements AudioBuffer.Task {
 		x -= x % context.tempo;
 		if (total_time > context.tempo && x > 0.001) {
 			new Fork_Task(fork.fork1, start_time, x, context);
-			new Fork_Task(fork.fork2, start_time + x, total_time-x, context);
-		} else
+			new Fork_Task(fork.fork2, start_time + x, total_time-x - context.tempo, context);
+		} else {
 			fork.task.addToBuffer(start_time);
+			if (start_time + total_time - context.tempo > start_time)
+				fork.task.addToBuffer(start_time + total_time - context.tempo);
+		}
 	}
 	
 	public function addToBuffer(t:Float)
