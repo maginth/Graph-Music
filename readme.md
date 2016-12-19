@@ -1,8 +1,8 @@
 Fractal Music
 =============
 
-
-[Play it!](http://aekuo.com/mathieu/portfolio/graph_music/GraphMusic.html)
+#Live Demo :
+[>>> Listen to it now ! <<<](http://aekuo.com/mathieu/portfolio/graph_music/GraphMusic.html)
 
 author : Mathieu Guinin
 
